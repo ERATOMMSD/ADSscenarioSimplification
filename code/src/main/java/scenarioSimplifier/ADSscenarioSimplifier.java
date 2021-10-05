@@ -3,8 +3,10 @@ package scenarioSimplifier;
 import ads.ADSResult;
 import ads.ADSRunner;
 import logger.CustomLogger;
+import results.ResultsAndLoader;
 import scenarioSimplifier.resultsComparator.TestResultComparator;
 import scenarioSimplifier.simplifier.Simplifier;
+import scenarioSimplifier.utils.Utils;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -24,6 +26,7 @@ public class ADSscenarioSimplifier {
     private final Class<? extends Simplifier> simplifierClass;
     private final Class<? extends TestResultComparator> resultsComparatorClass;
     private final Class<? extends ADSRunner> adsRunnerClass;
+    private final Class<? extends ResultsAndLoader> resultsAndLoaderClass;
     private final String basePath;
 
     /**
@@ -32,12 +35,13 @@ public class ADSscenarioSimplifier {
      * @param resultsComparatorClass class extending TestResultComparator that implements a comparison policy between two test results
      * @throws IOException
      */
-    public ADSscenarioSimplifier(String pathOriginalScenario, int timeout, Class<? extends Simplifier> simplifierClass, Class<? extends TestResultComparator> resultsComparatorClass, Class<? extends ADSRunner> adsRunnerClass) {
+    public ADSscenarioSimplifier(String pathOriginalScenario, int timeout, Class<? extends Simplifier> simplifierClass, Class<? extends TestResultComparator> resultsComparatorClass, Class<? extends ADSRunner> adsRunnerClass, Class<? extends ResultsAndLoader> resultsAndLoaderClass) {
         this.pathOriginalScenario = pathOriginalScenario;
         this.timeout = timeout;
         this.simplifierClass = simplifierClass;
         this.resultsComparatorClass = resultsComparatorClass;
         this.adsRunnerClass = adsRunnerClass;
+        this.resultsAndLoaderClass = resultsAndLoaderClass;
         this.basePath = "";
     }
 
@@ -46,11 +50,12 @@ public class ADSscenarioSimplifier {
         Utils.setupLoggerAndPathPP();
 
         try {
+            ResultsAndLoader resultsAndLoader = ResultsAndLoader.getResultsAndLoader(resultsAndLoaderClass);
             ADSRunner adsRunner = ADSRunner.getADSrunner(adsRunnerClass, pathOriginalScenarioStr);
             pathOriginalScenarioStr = adsRunner.getScenarioFileName();//update the scenario path if this is changed by the runner
             ADSResult resultOriginalScenario = adsRunner.run(timeout);
             assert resultOriginalScenario != null : pathOriginalScenarioStr;
-            Simplifier simplifier = Simplifier.getSimplifier(simplifierClass, pathOriginalScenarioStr, resultOriginalScenario);
+            Simplifier simplifier = Simplifier.getSimplifier(simplifierClass, pathOriginalScenarioStr, resultOriginalScenario, resultsAndLoader);
             TestResultComparator testComparator = TestResultComparator.getComparator(resultsComparatorClass);
 
             Path folderResultsLogs = setLoggers(pathOriginalScenarioStr, resultOriginalScenario, simplifier);
@@ -122,4 +127,5 @@ public class ADSscenarioSimplifier {
         bw.flush();
         bw.close();
     }
+
 }

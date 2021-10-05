@@ -1,6 +1,7 @@
 package scenarioSimplifier.simplifier;
 
 import ads.ADSResult;
+import results.ResultsAndLoader;
 import scenarioSimplifier.simplifier.visitorIndexes.NodeIndexesRangeBinary;
 
 import java.io.IOException;
@@ -8,8 +9,8 @@ import java.io.IOException;
 public abstract class BinarySingleSimplifier extends BinarySimplifier {
     private NodeIndexesRangeBinary rangeToDoSingle;
 
-    public BinarySingleSimplifier(String pathOriginalScenario, ADSResult originalResult) throws IOException {
-        super(pathOriginalScenario, originalResult);
+    public BinarySingleSimplifier(String pathOriginalScenario, ADSResult originalResult, ResultsAndLoader resultsAndLoader) throws IOException {
+        super(pathOriginalScenario, originalResult, resultsAndLoader);
         rangeToDoSingle = null;
     }
 

@@ -1,8 +1,9 @@
 package scenarioSimplifier.simplifier;
 
 import ads.ADSResult;
-import ads.pathPlanner.scenario.DynamicObject;
-import ads.pathPlanner.scenario.Scenario;
+import ads.ADSScenario;
+import results.ResultsAndLoader;
+import scenarioSimplifier.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +16,8 @@ public abstract class SingleSimplifier extends Simplifier {
     protected final List<String> removedOrTried;
     protected final List<String> removed;
 
-    public SingleSimplifier(String pathOriginalScenario, ADSResult originalResult) throws IOException {
-        super(pathOriginalScenario, originalResult);
+    public SingleSimplifier(String pathOriginalScenario, ADSResult originalResult, ResultsAndLoader resultsAndLoader) throws IOException {
+        super(pathOriginalScenario, originalResult, resultsAndLoader);
         removedOrTried = new ArrayList<>();
         removed = new ArrayList<>();
     }
@@ -38,15 +39,15 @@ public abstract class SingleSimplifier extends Simplifier {
                 //this works because we know that we are crashing with another car
                 //however, in general the simplification could remove all the other cars
                 //TODO make it more general for any simplification setting
-                Utils.loadScenario(pathLastAcceptedScenario).getDynamicObjects().size() > 1;
+                resultsAndLoader.loadScenario(pathLastAcceptedScenario).getNumDynamicObjects() > 1;
     }
 
     @Override
     public String getNextScenario() throws IOException {
-        Scenario currentSuggestedScenario = Utils.loadScenario(pathLastAcceptedScenario);
-        List<DynamicObject> dynamicObjects = currentSuggestedScenario.getDynamicObjects();
+        ADSScenario currentSuggestedScenario = resultsAndLoader.loadScenario(pathLastAcceptedScenario);
+        List<String> dynamicObjects = currentSuggestedScenario.getNumDynamicObjectsIDs();
         int indexDOtoRemove = getIndexDOtoRemove(dynamicObjects);
-        String doIDtoRemove = dynamicObjects.get(indexDOtoRemove).id;
+        String doIDtoRemove = dynamicObjects.get(indexDOtoRemove);
         removeDynamicObject(currentSuggestedScenario, indexDOtoRemove);
         StringBuilder sb = new StringBuilder();
         sb.append("_DOs");
@@ -61,5 +62,5 @@ public abstract class SingleSimplifier extends Simplifier {
         return pathCurrentSuggestedScenario;
     }
 
-    protected abstract int getIndexDOtoRemove(List<DynamicObject> dynamicObjects);
+    protected abstract int getIndexDOtoRemove(List<String> dynamicObjects);
 }

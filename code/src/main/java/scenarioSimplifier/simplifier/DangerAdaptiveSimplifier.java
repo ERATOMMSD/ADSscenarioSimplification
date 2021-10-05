@@ -2,6 +2,7 @@ package scenarioSimplifier.simplifier;
 
 import ads.ADSResult;
 import ads.testMeasure.DangerMeasure;
+import results.ResultsAndLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,8 +11,8 @@ import java.util.List;
 
 public class DangerAdaptiveSimplifier extends AdaptiveSimplifier {
 
-    public DangerAdaptiveSimplifier(String pathOriginalScenario, ADSResult originalResult) throws IOException {
-        super(pathOriginalScenario, originalResult);
+    public DangerAdaptiveSimplifier(String pathOriginalScenario, ADSResult originalResult, ResultsAndLoader resultsAndLoader) throws IOException {
+        super(pathOriginalScenario, originalResult, resultsAndLoader);
     }
 
     @Override

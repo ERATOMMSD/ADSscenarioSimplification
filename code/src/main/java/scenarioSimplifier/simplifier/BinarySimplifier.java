@@ -1,10 +1,11 @@
 package scenarioSimplifier.simplifier;
 
 import ads.ADSResult;
-import ads.pathPlanner.scenario.DynamicObject;
-import ads.pathPlanner.scenario.Scenario;
+import ads.ADSScenario;
+import results.ResultsAndLoader;
 import scenarioSimplifier.simplifier.visitorIndexes.NodeIndexesRangeBinary;
 import scenarioSimplifier.simplifier.visitorIndexes.VisitorIndexesRangesBinary;
+import scenarioSimplifier.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,8 +20,8 @@ public abstract class BinarySimplifier extends Simplifier {
     protected Integer[] indexDO;
     protected List<String> generatedScenariosCombinations;
 
-    public BinarySimplifier(String pathOriginalScenario, ADSResult originalResult) throws IOException {
-        super(pathOriginalScenario, originalResult);
+    public BinarySimplifier(String pathOriginalScenario, ADSResult originalResult, ResultsAndLoader resultsAndLoader) throws IOException {
+        super(pathOriginalScenario, originalResult, resultsAndLoader);
         statusDOs = new DO_STATUS[originalResult.getNumDynamicObjects()];
         for (int i = 0; i < statusDOs.length; i++) {
             statusDOs[i] = DO_STATUS.ADD_TBR;
@@ -39,14 +40,14 @@ public abstract class BinarySimplifier extends Simplifier {
 
     @Override
     public String getNextScenario() throws IOException {
-        Scenario currentSuggestedScenario = Utils.loadScenario(pathOriginalScenario);
-        List<DynamicObject> dynamicObjects = currentSuggestedScenario.getDynamicObjects();
+        ADSScenario currentSuggestedScenario = resultsAndLoader.loadScenario(pathOriginalScenario);
+        List<String> dynamicObjects = currentSuggestedScenario.getNumDynamicObjectsIDs();
         List<Integer> indexsDOstoRemove = getIndexesDOstoRemove();
         List<String> doIDsToRemove = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         sb.append("_DOs");
         for (int indexDOtoRemove : indexsDOstoRemove) {
-            String id = dynamicObjects.get(indexDOtoRemove).id;
+            String id = dynamicObjects.get(indexDOtoRemove);
             String idOnlyNumber = id.replaceAll("do", "");
             doIDsToRemove.add(id);
             sb.append("_").append(idOnlyNumber);

@@ -1,9 +1,11 @@
 package scenarioSimplifier.simplifier;
 
 import ads.ADSResult;
+import ads.ADSScenario;
 import ads.pathPlanner.PathPlannerResult;
 import ads.pathPlanner.PathPlannerRunner;
-import ads.pathPlanner.scenario.Scenario;
+import results.ResultsAndLoader;
+import scenarioSimplifier.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +17,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
-public abstract class Simplifier {
+public abstract class Simplifier<T extends ADSScenario> {
     protected String pathOriginalScenario;
     protected String nameScenario;
     protected ADSResult originalResult;
@@ -35,15 +37,16 @@ public abstract class Simplifier {
     protected Path folderResultsLogs;
     protected Path folderResultsGenerated;
     protected Path folderResultsAccepted;
+    protected ResultsAndLoader<T> resultsAndLoader;
 
-    public Simplifier(String pathOriginalScenario, ADSResult originalResult) throws IOException {
+    public Simplifier(String pathOriginalScenario, ADSResult originalResult, ResultsAndLoader resultsAndLoader) throws IOException {
         this.pathOriginalScenario = pathOriginalScenario;
         Path pathOriginalScenarioPath = Paths.get(pathOriginalScenario);
         nameScenario = pathOriginalScenarioPath.getFileName().toString().replaceAll(".json", "");
         this.originalResult = originalResult;
         pathLastAcceptedScenario = pathOriginalScenario;
         lastAcceptedScenarioResult = originalResult;
-        numDynamicObjectsOriginalScenario = Utils.loadScenario(pathOriginalScenario).getDynamicObjects().size();
+        numDynamicObjectsOriginalScenario = resultsAndLoader.loadScenario(pathOriginalScenario).getNumDynamicObjects();
         simplifiedScenarioAccepted = false;
         counter = 0;
 
@@ -62,21 +65,9 @@ public abstract class Simplifier {
         Files.copy(pathOriginalScenarioPath, folderResults.resolve(pathOriginalScenarioPath.getFileName()));
     }
 
-    public abstract boolean hasNextScenario() throws IOException;
-
-    public abstract String getNextScenario() throws IOException;
-
-    public ADSResult runCurrentSuggestedScenario(int timeout) throws IOException {
-        PathPlannerRunner ppr = new PathPlannerRunner(pathCurrentSuggestedScenario);
-        currentSuggestedScenarioResult = ppr.run(timeout);
-        return currentSuggestedScenarioResult;
-    }
-
-    public abstract void acceptSimplifiedScenario(boolean acceptScenario) throws IOException;
-
-    public static Simplifier getSimplifier(String simplifierClassId, String pathOriginalScenario, PathPlannerResult resultOriginalScenario) throws IOException {
+    public static Simplifier getSimplifier(String simplifierClassId, String pathOriginalScenario, PathPlannerResult resultOriginalScenario, ResultsAndLoader resultsAndLoader) throws IOException {
         Class<? extends Simplifier> simplifierClass = getSimplifierClass(simplifierClassId);
-        return getSimplifier(simplifierClass, pathOriginalScenario, resultOriginalScenario);
+        return getSimplifier(simplifierClass, pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
     }
 
     public static Class<? extends Simplifier> getSimplifierClass(String simplifierClassId) {
@@ -112,32 +103,44 @@ public abstract class Simplifier {
         return simplifierClass;
     }
 
-    public static Simplifier getSimplifier(Class<? extends Simplifier> simplifierClass, String pathOriginalScenario, ADSResult resultOriginalScenario) throws IOException {
+    public static Simplifier getSimplifier(Class<? extends Simplifier> simplifierClass, String pathOriginalScenario, ADSResult resultOriginalScenario, ResultsAndLoader resultsAndLoader) throws IOException {
         if (simplifierClass == RandomSingleSimplifier.class) {
-            return new RandomSingleSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new RandomSingleSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == DangerSingleSimplifier.class) {
-            return new DangerSingleSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new DangerSingleSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == RandomBinarySimplifier.class) {
-            return new RandomBinarySimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new RandomBinarySimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == DangerBinarySimplifier.class) {
-            return new DangerBinarySimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new DangerBinarySimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == RandomBinarySingleSimplifier.class) {
-            return new RandomBinarySingleSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new RandomBinarySingleSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == DangerBinarySingleSimplifier.class) {
-            return new DangerBinarySingleSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new DangerBinarySingleSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == RandomAdaptiveSimplifier.class) {
-            return new RandomAdaptiveSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new RandomAdaptiveSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         } else if (simplifierClass == DangerAdaptiveSimplifier.class) {
-            return new DangerAdaptiveSimplifier(pathOriginalScenario, resultOriginalScenario);
+            return new DangerAdaptiveSimplifier(pathOriginalScenario, resultOriginalScenario, resultsAndLoader);
         }
         throw new Error("Simplifier unknown");
     }
 
-    public void removeDynamicObject(Scenario scenario, int index) {
+    public abstract boolean hasNextScenario() throws IOException;
+
+    public abstract String getNextScenario() throws IOException;
+
+    public ADSResult runCurrentSuggestedScenario(int timeout) throws IOException {
+        PathPlannerRunner ppr = new PathPlannerRunner(pathCurrentSuggestedScenario);
+        currentSuggestedScenarioResult = ppr.run(timeout);
+        return currentSuggestedScenarioResult;
+    }
+
+    public abstract void acceptSimplifiedScenario(boolean acceptScenario) throws IOException;
+
+    public void removeDynamicObject(ADSScenario scenario, int index) {
         removeDynamicObjects(scenario, Collections.singletonList(index));
     }
 
-    public void removeDynamicObjects(Scenario scenario, List<Integer> indexes) {
+    public void removeDynamicObjects(ADSScenario scenario, List<Integer> indexes) {
         scenario.removeDynamicObjects(indexes);
     }
 
