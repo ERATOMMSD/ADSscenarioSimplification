@@ -14,3 +14,6 @@ The code can be extended to different ADS simulators, by extending the classes:
 * Paolo Arcaini http://group-mmm.org/~arcaini/
 * Xiao-Yi Zhang https://group-mmm.org/~xiaoyi/
 * Fuyuki Ishikawa http://research.nii.ac.jp/~f-ishikawa/en/
+
+## Paper
+P. Arcaini, X. Zhang, F. Ishikawa. "Less is More: Simplification of Test Scenarios for Autonomous Driving System Testing", in Proceedings of the 15th International Conference on Software Testing, Validation and Verification (ICST 2022)
